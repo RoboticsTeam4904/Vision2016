@@ -241,3 +241,4 @@ float dist(rect_points goal, int size_y, float mountAngleX, float mountAngleY, f
     cameraAngle = mountAngleX+a(shiftY,shiftX);
     return sqrt(cameraDistance^2+shift^2-2*cameraDistance*shift*cos(cameraAngle));
 }
+Smartdashboard.putNumber(float dist(rect_points goal, double size_y, double mountAngleX, double mountAngleY, double degPerPxl, double shiftX, double shiftY, double goalHeight));
