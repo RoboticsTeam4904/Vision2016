@@ -119,7 +119,9 @@ int main(int argc, char** argv) {
 void analyzeImage(Mat src) {
     size_x = src.cols;
     size_y = src.rows;
-
+    
+    Smartdashboard.putNumber(int size_y));
+    
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) );
 
@@ -133,7 +135,6 @@ void analyzeImage(Mat src) {
 
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) ); 
-    
     convex_callback(0,0);
     blob_callback(0,0);
     if (gui) waitKey(0);
@@ -219,4 +220,3 @@ void blob_callback(int, void*) {
 
     if (gui) imshow("window",result);
 }
-Smartdashboard.putNumber(int size_y));
