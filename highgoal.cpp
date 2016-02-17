@@ -219,3 +219,4 @@ void blob_callback(int, void*) {
 
     if (gui) imshow("window",result);
 }
+Smartdashboard.putNumber(int size_y));
