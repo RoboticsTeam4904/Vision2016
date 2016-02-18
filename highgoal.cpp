@@ -5,6 +5,10 @@
 #include <dirent.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+//Probably needs WPILib
+#include "WPILib.h"
+//Might need this (networktables) for SmartDashboard
+#include "NetworkTables/NetworkTable.h"
 
 using namespace cv;
 using namespace std;
@@ -120,7 +124,8 @@ void analyzeImage(Mat src) {
     size_x = src.cols;
     size_y = src.rows;
     
-    Smartdashboard.putNumber(int size_y));
+    SmartDashboard::PutNumber("size_y", size_y);
+    // Smartdashboard.putNumber(int size_y));
     
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) );
