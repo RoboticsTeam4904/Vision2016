@@ -5,6 +5,8 @@
 #include <dirent.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include "WPILib.h"
+#include "NetworkTables/NetworkTable.h"
 
 using namespace cv;
 using namespace std;
@@ -120,20 +122,22 @@ void analyzeImage(Mat src) {
     size_x = src.cols;
     size_y = src.rows;
 
+    Smartdashboard::putNumber("size_y", size_y);
+
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) );
 
     if (gui) namedWindow( "window", CV_WINDOW_AUTOSIZE );
-    if (gui && detailedGUI) imshow("src_gray",src_gray);    
+    if (gui && detailedGUI) imshow("src_gray",src_gray);
     if (gui) createTrackbar( " Threshold:", "window", &thresh, max_thresh, convex_callback );
     if (gui) createTrackbar( " BlobSize:", "window", &blob_size, max_blob, blob_callback );
 
 
-    
+
 
     cvtColor( src, src_gray, CV_BGR2GRAY );
-    blur( src_gray, src_gray, Size(3,3) ); 
-    
+    blur( src_gray, src_gray, Size(3,3) );
+
     convex_callback(0,0);
     blob_callback(0,0);
     if (gui) waitKey(0);
