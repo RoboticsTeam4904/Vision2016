@@ -36,6 +36,9 @@ void convex_callback(int, void* );
 void blob_callback(int, void*);
 void analyzeImage(Mat src);
 
+float angle_measure(rect_points);
+float rotationX(rect_points);
+float rotationY(rect_points);
 
 
 
@@ -133,7 +136,7 @@ void analyzeImage(Mat src) {
 
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) ); 
-    
+
     convex_callback(0,0);
     blob_callback(0,0);
     if (gui) waitKey(0);
@@ -218,4 +221,27 @@ void blob_callback(int, void*) {
     }
 
     if (gui) imshow("window",result);
+}
+
+float angle_measure(rect_points goal) {
+
+    float anglea;
+    float angleb;
+    if ((goal.side_two.x-goal.side_three.x) == 0) return 0;
+    if ((goal.side_four.x-goal.side_one.x) == 0) return 0;
+    anglea = atan((goal.side_three.y-goal.side_two.y)/(goal.side_two.x-goal.side_three.x))*(180/M_PI);
+    angleb = atan((goal.side_four.y-goal.side_one.y)/(goal.side_four.x-goal.side_one.x))*(180/M_PI);
+    return angleb-anglea;
+}
+float rotationX(rect_points goal) {
+    float xdiff;
+    xdiff = (size_x/2)-(goal.side_two.x+goal.side_one.x+goal.side_three.x+goal.side_four.x)/4;
+    return xdiff;
+}
+float rotationY(rect_points goal) {
+    float ydiff;
+    ydiff = (size_y/2)-(goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4;
+    return ydiff;
+
+
 }
