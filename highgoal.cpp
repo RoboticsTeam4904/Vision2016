@@ -5,10 +5,6 @@
 #include <dirent.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-//Probably needs WPILib
-#include "WPILib.h"
-//Might need this (networktables) for SmartDashboard
-#include "NetworkTables/NetworkTable.h"
 
 using namespace cv;
 using namespace std;
@@ -48,7 +44,7 @@ int getdir (string dir, vector<string> &files) {
     struct dirent *dirp;
     if ((dp = opendir(dir.c_str())) == NULL) {
         cout << "Error opening " << dir << endl;
-        return errno;
+        return -1;
     }
 
     while ((dirp = readdir(dp)) != NULL) {
@@ -123,10 +119,7 @@ int main(int argc, char** argv) {
 void analyzeImage(Mat src) {
     size_x = src.cols;
     size_y = src.rows;
-    
-    SmartDashboard::PutNumber("size_y", size_y);
-    // Smartdashboard.putNumber(int size_y));
-    
+
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) );
 
@@ -140,6 +133,7 @@ void analyzeImage(Mat src) {
 
     cvtColor( src, src_gray, CV_BGR2GRAY );
     blur( src_gray, src_gray, Size(3,3) ); 
+    
     convex_callback(0,0);
     blob_callback(0,0);
     if (gui) waitKey(0);
@@ -219,7 +213,7 @@ void blob_callback(int, void*) {
         cout<<"vertex 3: ("<<goal.side_three.x<<","<<goal.side_three.y<<")"<<endl;
         cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
         cout<<"angle"<<endl;
-        cout<<angle_measure(goal)<<endl;
+        //cout<<angle_measure(goal)<<endl;
 
     }
 
