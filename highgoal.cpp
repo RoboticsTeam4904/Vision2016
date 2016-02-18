@@ -229,19 +229,9 @@ void blob_callback(int, void*) {
 }
 
 float dist_off_angle(rect_points goal, int size_y, float mountAngleX, float mountAngleY, float degPerPxl, float shiftX, float shiftY, float goalHeight) {
-    float goalPixelY;
-    float goalAngleY;
-    float cameraDistance;
-    float shift;
-    float cameraAngle;
     float distance;
-    float offAngle;
-    goalPixelY = (goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4;
-    goalAngleY = mountAngleY+degPerPxl*(goalPixelY-imageHeight/2);
-    cameraDistance = goalHeight/tan(goalAngleY);
-    shift = sqrt(shiftX^2+shiftY^2);
-    cameraAngle = mountAngleX+atan(shiftY/shiftX);
-    distance = sqrt(cameraDistance^2+shift^2-2*cameraDistance*shift*cos(cameraAngle));
-    offAngle = asin(sin(cameraAngle)*cameraDistance/distance);
+    float offAngle
+    distance = sqrt(goalHeight/tan(mountAngleY+degPerPxl*((goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4-imageHeight/2))^2+shiftX^2+shiftY^2-2*goalHeight/tan(mountAngleY+degPerPxl*((goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4-imageHeight/2))*sqrt(shiftX^2+shiftY^2)*cos(mountAngleX+atan(shiftY/shiftX)));
+    offAngle = asin(sin(mountAngleX+atan(shiftY/shiftX))*goalHeight/tan(mountAngleY+degPerPxl*((goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4-imageHeight/2))/distance);
     return [distance, offAngle]
 }
