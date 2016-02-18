@@ -5,7 +5,6 @@
 #include <dirent.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-
 //Probably needs WPILib
 #include "WPILib.h"
 //Might need this (networktables) for SmartDashboard
