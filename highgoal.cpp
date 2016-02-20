@@ -36,6 +36,13 @@ void convex_callback(int, void* );
 void blob_callback(int, void*);
 void analyzeImage(Mat src);
 
+// define mounting variables
+float mountAngleX = 10;
+float mountAngleY = 10;
+float degPerPxl = 0.0213;
+float shiftX = 10;
+float shiftY = 10;
+float goalHeight = 7;
 
 
 
@@ -110,6 +117,7 @@ int main(int argc, char** argv) {
             return -1;
         }
         analyzeImage(src);
+        Smartdashboard.putNumber(float dist(rect_points goal, double size_y, double mountAngleX, double mountAngleY, double degPerPxl, double shiftX, double shiftY, double goalHeight));
     }
 
     return 0;
@@ -218,4 +226,18 @@ void blob_callback(int, void*) {
     }
 
     if (gui) imshow("window",result);
+}
+
+float dist(rect_points goal, int size_y, float mountAngleX, float mountAngleY, float degPerPxl, float shiftX, float shiftY, float goalHeight) {
+    float goalPixelY;
+    float goalAngleY;
+    float cameraDistance;
+    float shift;
+    float cameraAngle;
+    goalPixelY = (goal.side_two.y+goal.side_one.y+goal.side_three.y+goal.side_four.y)/4;
+    goalAngleY = mountAngleY+degPerPxl*(goalPixelY-imageHeight/2);
+    cameraDistance = goalHeight/tan(goalAngleY);
+    shift = sqrt(shiftX^2+shiftY^2);
+    cameraAngle = mountAngleX+atan(shiftY/shiftX);
+    return sqrt(cameraDistance^2+shift^2-2*cameraDistance*shift*cos(cameraAngle));
 }
