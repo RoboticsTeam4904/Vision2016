@@ -5,8 +5,8 @@
 #include <dirent.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
-#include "WPILib.h"
-#include "NetworkTables/NetworkTable.h"
+#include "wpilib/cpp/current/include/SmartDashboard/SmartDahboard.h"
+//#include "NetworkTables/NetworkTable.h"
 
 using namespace cv;
 using namespace std;
