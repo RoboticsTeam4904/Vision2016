@@ -111,8 +111,15 @@ int main(int argc, char** argv) {
         }
         analyzeImage(src);
     }
+    Mat im = imread( "pict.jpg", IMREAD_GRAYSCALE );
 
-    // return 0;
+    	// Setup SimpleBlobDetector parameters.
+    	SimpleBlobDetector::Params params;
+
+    	// Filter by Area.
+    	params.filterByArea = true;
+    	params.minArea = 1500;
+    return 0;
 }
 
 
