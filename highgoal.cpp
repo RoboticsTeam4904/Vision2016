@@ -190,35 +190,6 @@ void blob_callback(int, void*) {
     vector<Vec4i> hierarchy;
     Mat blobed;
     Mat element = getStructuringElement(MORPH_ELLIPSE,Size( 2*blob_size + 1, 2*blob_size+1 ),Point( blob_size, blob_size ) );
-
-    erode(subtracted, blobed, element);
-    dilate(blobed, blobed, element);
-    if (gui && detailedGUI) imshow("blobed", blobed);
-    findContours(blobed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
-    Mat result=src.clone();// Mat::zeros(blobed.size(),CV_8UC3);
-
-    for (int i = 0; i<contours.size(); ++i) {
-        approxPolyDP(Mat(contours[i]), poly, 3, true);
-        goal.side_one = poly[0];
-        goal.side_two = poly[1];
-        goal.side_three = poly[2];
-        goal.side_four = poly[3];
-
-        line(result, goal.side_one,goal.side_two, Scalar(255,0,0),5);
-        line(result, goal.side_two,goal.side_three, Scalar(255,0,0),5);
-        line(result, goal.side_three,goal.side_four, Scalar(255,0,0),5);
-        line(result, goal.side_four,goal.side_one, Scalar(255,0,0),5);
-        cout<<"vertex 1: ("<<goal.side_one.x<<","<<goal.side_one.y<<")"<<endl;
-        cout<<"vertex 2: ("<<goal.side_two.x<<","<<goal.side_two.y<<")"<<endl;
-        cout<<"vertex 3: ("<<goal.side_three.x<<","<<goal.side_three.y<<")"<<endl;
-        cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
-        cout<<"angle"<<endl;
-        //cout<<angle_measure(goal)<<endl;
-
-    }
-}
-void tyler()
-{
     Mat src;
     src = imread("pict.jpg", CV_LOAD_IMAGE_COLOR);
     Mat gray;
@@ -252,4 +223,66 @@ void tyler()
    imshow( "Display window", src );
    waitKey(0);
    return 0;
+
+    erode(subtracted, blobed, element);
+    dilate(blobed, blobed, element);
+    if (gui && detailedGUI) imshow("blobed", blobed);
+    findContours(blobed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0) );
+    Mat result=src.clone();// Mat::zeros(blobed.size(),CV_8UC3);
+
+    for (int i = 0; i<contours.size(); ++i) {
+        approxPolyDP(Mat(contours[i]), poly, 3, true);
+        goal.side_one = poly[0];
+        goal.side_two = poly[1];
+        goal.side_three = poly[2];
+        goal.side_four = poly[3];
+
+        line(result, goal.side_one,goal.side_two, Scalar(255,0,0),5);
+        line(result, goal.side_two,goal.side_three, Scalar(255,0,0),5);
+        line(result, goal.side_three,goal.side_four, Scalar(255,0,0),5);
+        line(result, goal.side_four,goal.side_one, Scalar(255,0,0),5);
+        cout<<"vertex 1: ("<<goal.side_one.x<<","<<goal.side_one.y<<")"<<endl;
+        cout<<"vertex 2: ("<<goal.side_two.x<<","<<goal.side_two.y<<")"<<endl;
+        cout<<"vertex 3: ("<<goal.side_three.x<<","<<goal.side_three.y<<")"<<endl;
+        cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
+        cout<<"angle"<<endl;
+        //cout<<angle_measure(goal)<<endl;
+
+    }
+}
+// int tyler()
+// {
+  //   Mat src;
+  //   src = imread("pict.jpg", CV_LOAD_IMAGE_COLOR);
+  //   Mat gray;
+  //   cvtColor(src, gray, CV_BGR2GRAY);
+  //   threshold(gray, gray,200, 255,THRESH_BINARY_INV); //Threshold the gray
+  //   imshow("gray",gray);int largest_area=0;
+  //   int largest_contour_index=0;
+  //   Rect bounding_rect;
+  //   vector<vector<Point> > contours; // Vector for storing contour
+  //   vector<Vec4i> hierarchy;
+  //   findContours( gray, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
+  //   // iterate through each contour.
+  //   for( int i = 0; i< contours.size(); i++ )
+  //   {
+  //       //  Find the area of contour
+  //       double a=contourArea( contours[i],false);
+  //       if(a>largest_area){
+  //           largest_area=a;
+  //           cout<<i<<" area  "<<a<<endl;
+  //           // Store the index of largest contour
+  //           largest_contour_index=i;
+  //           // Find the bounding rectangle for biggest contour
+  //           bounding_rect=boundingRect(contours[i]);
+  //       }
+  //   }
+  //  Scalar color( 255,255,255);  // color of the contour in the
+  //  //Draw the contour and rectangle
+  //  drawContours( src, contours,largest_contour_index, color, CV_FILLED,8,hierarchy);
+  //  rectangle(src, bounding_rect,  Scalar(0,255,0),2, 8,0);
+  //  namedWindow( "Display window", CV_WINDOW_AUTOSIZE );
+  //  imshow( "Display window", src );
+  //  waitKey(0);
+  //  return 0;
 }
