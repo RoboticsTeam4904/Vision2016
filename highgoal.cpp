@@ -58,7 +58,7 @@ int getdir (string dir, vector<string> &files) {
 
 
 int main(int argc, char** argv) {
-    string image = "picture.jpg";
+    string image = "pict.jpg";
 
     if (argc == 1) {
         detailedGUI = true;
@@ -222,7 +222,7 @@ void blob_callback(int, void*) {
 int tyler()
 {
     Mat src;
-    src = imread("picture.jpg", CV_LOAD_IMAGE_COLOR);
+    src = imread("pict.jpg", CV_LOAD_IMAGE_COLOR);
     Mat gray;
     cvtColor(src, gray, CV_BGR2GRAY);
     threshold(gray, gray,200, 255,THRESH_BINARY_INV); //Threshold the gray
