@@ -100,6 +100,19 @@ int main(int argc, char** argv) {
                 done = true;
             }
         }
+        Mat src;
+        src = imread("picture.jpg", CV_LOAD_IMAGE_COLOR);
+        Mat gray;
+        cvtColor(src, gray, CV_BGR2GRAY);
+        threshold(gray, gray,200, 255,THRESH_BINARY_INV); //Threshold the gray
+        imshow("gray",gray);int largest_area=0;
+        int largest_contour_index=0;
+        Rect bounding_rect;
+        vector<vector<Point> > contours; // Vector for storing contour
+        vector<Vec4i> hierarchy;
+        findContours( gray, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
+        // iterate through each contour.
+        }
 
     }
 
@@ -214,27 +227,6 @@ void blob_callback(int, void*) {
         cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
         cout<<"angle"<<endl;
         //cout<<angle_measure(goal)<<endl;
-
-    }
-
-    if (gui) imshow("window",result);
-}
-int main( )
-{
-    Mat src;
-    src = imread("picture.jpg", CV_LOAD_IMAGE_COLOR);
-    Mat gray;
-    cvtColor(src, gray, CV_BGR2GRAY);
-    threshold(gray, gray,200, 255,THRESH_BINARY_INV); //Threshold the gray
-    imshow("gray",gray);int largest_area=0;
-    int largest_contour_index=0;
-    Rect bounding_rect;
-    vector<vector<Point> > contours; // Vector for storing contour
-    vector<Vec4i> hierarchy;
-    findContours( gray, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
-    // iterate through each contour.
-    for( int i = 0; i< contours.size(); i++ )
-    {
         //  Find the area of contour
         double a=contourArea( contours[i],false);
         if(a>largest_area){
@@ -243,8 +235,11 @@ int main( )
             largest_contour_index=i;
             // Find the bounding rectangle for biggest contour
             bounding_rect=boundingRect(contours[i]);
-        }
+
     }
+
+    if (gui) imshow("window",result);
+}
    Scalar color( 255,255,255);  // color of the contour in the
    //Draw the contour and rectangle
    drawContours( src, contours,largest_contour_index, color, CV_FILLED,8,hierarchy);
@@ -253,4 +248,3 @@ int main( )
    imshow( "Display window", src );
    waitKey(0);
    return 0;
-}
