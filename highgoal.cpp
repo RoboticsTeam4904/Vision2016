@@ -217,7 +217,7 @@ void blob_callback(int, void*) {
 
     }
 }
-Mat measure::findBiggestBlob(cv::Mat &src){
+Mat findBiggestBlob(cv::Mat &src){
 int largest_area=0;
 int largest_contour_index=0;
 Mat temp(src.rows,src.cols,CV_8UC1);
@@ -243,5 +243,4 @@ for( int i = 0; i< contours.size(); i++ ) // iterate
 drawContours( dst, contours,largest_contour_index, Scalar(255), CV_FILLED, 8, hierarchy );
 // Draw the largest contour
 return dst;
-}
 }
