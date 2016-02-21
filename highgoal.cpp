@@ -283,4 +283,3 @@ void blob_callback(int, void*) {
   //  imshow( "Display window", src );
   //  waitKey(0);
   //  return 0;
-}
