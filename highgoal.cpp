@@ -224,7 +224,7 @@ Mat temp(src.rows,src.cols,CV_8UC1);
 Mat dst(src.rows,src.cols,CV_8UC1,Scalar::all(0));
 src.copyTo(temp);
 
-vector<vector<Point>> contours; // storing contour
+vector<vector<Point> > contours; // storing contour
 vector<Vec4i> hierarchy;
 
 findContours( temp, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
