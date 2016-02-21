@@ -217,13 +217,31 @@ void blob_callback(int, void*) {
 
     }
 }
-double maxArea = 0;
-for (MatOfPoint contour : contours) {
-    double area = Imgproc.contourArea(contour);
-    if (area > maxArea) {
-        maxArea = area;
-        largestContour = contour;
+Mat measure::findBiggestBlob(cv::Mat &src){
+int largest_area=0;
+int largest_contour_index=0;
+Mat temp(src.rows,src.cols,CV_8UC1);
+Mat dst(src.rows,src.cols,CV_8UC1,Scalar::all(0));
+src.copyTo(temp);
+
+vector<vector<Point>> contours; // storing contour
+vector<Vec4i> hierarchy;
+
+findContours( temp, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
+
+for( int i = 0; i< contours.size(); i++ ) // iterate
+{
+    double a=contourArea( contours[i],false);  //Find the largest area of contour
+    if(a>largest_area)
+    {
+        largest_area=a;
+        largest_contour_index=i;
     }
+
 }
-Rect boundingRect = Imgproc.boundingRect(largestContour);
+
+drawContours( dst, contours,largest_contour_index, Scalar(255), CV_FILLED, 8, hierarchy );
+// Draw the largest contour
+return dst;
+}
 }
