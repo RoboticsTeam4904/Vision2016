@@ -213,7 +213,14 @@ void blob_callback(int, void*) {
             bounding_rect=boundingRect(contours[i]);
         }
     }
-
+   Scalar color( 255,255,255);  // color of the contour in the
+   //Draw the contour and rectangle
+   drawContours( src, contours,largest_contour_index, color, CV_FILLED,8,hierarchy);
+   rectangle(src, bounding_rect,  Scalar(0,255,0),2, 8,0);
+   namedWindow( "Display window", CV_WINDOW_AUTOSIZE );
+   imshow( "Display window", src );
+   waitKey(0);
+   return 0;
 
     erode(subtracted, blobed, element);
     dilate(blobed, blobed, element);
@@ -268,12 +275,12 @@ void blob_callback(int, void*) {
   //           bounding_rect=boundingRect(contours[i]);
   //       }
   //   }
-   Scalar color( 255,255,255);  // color of the contour in the
-   //Draw the contour and rectangle
-   drawContours( src, contours,largest_contour_index, color, CV_FILLED,8,hierarchy);
-   rectangle(src, bounding_rect,  Scalar(0,255,0),2, 8,0);
-   namedWindow( "Display window", CV_WINDOW_AUTOSIZE );
-   imshow( "Display window", src );
-   waitKey(0);
-   return 0;
+  //  Scalar color( 255,255,255);  // color of the contour in the
+  //  //Draw the contour and rectangle
+  //  drawContours( src, contours,largest_contour_index, color, CV_FILLED,8,hierarchy);
+  //  rectangle(src, bounding_rect,  Scalar(0,255,0),2, 8,0);
+  //  namedWindow( "Display window", CV_WINDOW_AUTOSIZE );
+  //  imshow( "Display window", src );
+  //  waitKey(0);
+  //  return 0;
 }
