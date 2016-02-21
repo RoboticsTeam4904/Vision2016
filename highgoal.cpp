@@ -217,7 +217,7 @@ void blob_callback(int, void*) {
 
     }
 }
-int tyler()
+void tyler()
 {
     Mat src;
     src = imread("pict.jpg", CV_LOAD_IMAGE_COLOR);
