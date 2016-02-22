@@ -26,7 +26,7 @@ struct rect_points {
     Point side_four;
 };
 
-bool gui = true;
+bool gui = false;
 bool detailedGUI = false;
 bool test = false;
 bool latest = false;
