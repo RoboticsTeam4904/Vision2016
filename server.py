@@ -8,9 +8,11 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 
     def handle(self):
         # self.request is the TCP socket connected to the client
-        process = subprocess.Popen(["./highgoal.bin", "latest"], stdout=subprocess.PIPE)
-
-        response = process.stdout.read()
+        # process = subprocess.Popen(["./highgoal.bin", "latest"], stdout=subprocess.PIPE)
+        #
+        # response = process.stdout.read()
+        datafile = open("data.txt","r")
+        response = datafile.read()
         # just send back the same data, but upper-cased
         self.request.sendall(response)
 
