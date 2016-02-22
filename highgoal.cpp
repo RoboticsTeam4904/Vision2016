@@ -13,7 +13,7 @@ using namespace std;
 int main( )
 {
     Mat src;
-    src = imread("pict.jpg", CV_LOAD_IMAGE_COLOR);
+    src = imread("picture.jpg", CV_LOAD_IMAGE_COLOR);
     Mat gray;
     cvtColor(src, gray, CV_BGR2GRAY);
     threshold(gray, gray,200, 255,THRESH_BINARY_INV); //Threshold the gray
