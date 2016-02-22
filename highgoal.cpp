@@ -70,9 +70,6 @@ int getdir (string dir, vector<string> &files) {
     return 0;
 }
 
-
-
-
 int main(int argc, char** argv) {
     string image = "latest.jpg";
 
@@ -179,7 +176,6 @@ void convex_callback(int, void* ) {
     Mat threshold_output, convex;
     // vector<vector<Point> > contours;
 
-<<<<<<< HEAD
 Mat src, src_gray, subtracted;
 
 int thresh = 200;
@@ -207,9 +203,6 @@ void convex_callback(int, void* );
 void blob_callback(int, void*);
 void analyzeImage(Mat src);
 
-
-
-
 int getdir (string dir, vector<string> &files) {
     DIR *dp;
     struct dirent *dirp;
@@ -224,9 +217,6 @@ int getdir (string dir, vector<string> &files) {
     closedir(dp);
     return 0;
 }
-
-
-
 
 int main(int argc, char** argv) {
     string image = "pict.jpg";
@@ -422,7 +412,7 @@ int tyler()
    waitKey(0);
    return 0;
 }
-=======
+
 void blob_callback(int, void*) {
     vector<Point> poly;
     vector<Vec4i> hierarchy;
