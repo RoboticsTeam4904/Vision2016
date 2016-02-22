@@ -155,16 +155,16 @@ void analyzeImage(Mat src) {
     if (contours.size()!=0) {
       existingGoal=1;
     }
-    // if (contours.size()>1) {
-    //   double largest_area = 0.0;
-    //   for( int i = 0; i< contours.size(); i++ ) {
-    //     //  Find the area of contour
-    //     double a=contourArea(contours[i],false);
-    //     if(a>largest_area) {
-    //         largest_contour=contours[i];
-    //         largest_area=a;
-    //     }
-    //   }
+    if (contours.size()>1) {
+      double largest_area = 0.0;
+      for( int i = 0; i< contours.size(); i++ ) {
+        //  Find the area of contour
+        double a=contourArea(contours[i],false);
+        if(a>largest_area) {
+            largest_contour=contours[i];
+            largest_area=a;
+        }
+      }
     }
     if (existingGoal) {
       pair<float,float> tempvar = off_angle();
