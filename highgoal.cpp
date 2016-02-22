@@ -16,7 +16,7 @@ int max_thresh = 255;
 int size_x = -1;
 int size_y = -1;
 
-int blob_size = 5;
+int blob_size = 4;
 int max_blob = 20;
 
 struct rect_points {
@@ -75,7 +75,7 @@ int getdir (string dir, vector<string> &files) {
 
 
 int main(int argc, char** argv) {
-    string image = "img0506.jpg";
+    string image = "img0198.jpg";
 
     if (argc == 1) {
         detailedGUI = true;
@@ -132,6 +132,7 @@ int main(int argc, char** argv) {
 
 
 void analyzeImage(Mat src) {
+    cout<<"analyzing"<<endl;
     int existingGoal = 0;
     float offAngle = 0.0;
     float distance = 0.0;
@@ -150,10 +151,11 @@ void analyzeImage(Mat src) {
     blur( src_gray, src_gray, Size(3,3) );
 
     convex_callback(0,0);
-    blob_callback(0,0);
+    // blob_callback(0,0);
 
     if (contours.size()!=0) {
       existingGoal=1;
+      // largest_contour=contours;
     }
     if (contours.size()>1) {
       double largest_area = 0.0;
@@ -165,6 +167,8 @@ void analyzeImage(Mat src) {
             largest_area=a;
         }
       }
+      cout<<"hi"<<largest_contour<<endl;
+      //we need to run the distance calcs (goal) based on the largest_contour
     }
     if (existingGoal) {
       pair<float,float> tempvar = off_angle();
@@ -220,6 +224,7 @@ void convex_callback(int, void* ) {
 }
 
 void blob_callback(int, void*) {
+    cout<<"blobbing"<<endl;
     vector<Point> poly;
     vector<Vec4i> hierarchy;
     Mat blobed;
@@ -265,7 +270,10 @@ pair<float,float> off_angle() {
     float offAngle = asin(sin(cameraAngle)*cameraDistance/distance);
     offAngle = M_PI-(offAngle+atan(shiftX/shiftY));
     distance = distance/milimetersPerInch;
-    // cout<<"goalPixelY "<<goalPixelY<<endl;
+    cout<<"size_x "<<size_x<<endl;
+    cout<<"goalPixelX "<<goalPixelX<<endl;
+    cout<<"size_y "<<size_y<<endl;
+    cout<<"goalPixelY "<<goalPixelY<<endl;
     // cout<<"size_y "<<size_y<<endl;
     // cout<<"angleFromPhotoY "<<degPerPxlY*(goalPixelY-size_y/2)<<endl;
     // cout<<"mountAngleY "<<mountAngleY<<endl;
