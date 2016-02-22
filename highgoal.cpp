@@ -20,7 +20,7 @@ int main( )
     imshow("gray",gray);int largest_area=0;
     int largest_contour_index=0;
     Rect bounding_rect;
-    vector<vector<Point>> contours; // Vector for storing contour
+    vector<vector<Point> > contours; // Vector for storing contour
     vector<Vec4i> hierarchy;
     findContours( gray, contours, hierarchy,CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE );
     // iterate through each contour.
