@@ -26,7 +26,7 @@ struct rect_points {
     Point side_four;
 };
 
-bool gui = true;
+bool gui = false; //turn on for debugging
 bool detailedGUI = false;
 bool test = false;
 bool latest = false;
@@ -91,6 +91,7 @@ int main(int argc, char** argv) {
 
         } else if (strcmp(argv[1], "latest")==0) {
             latest = true;
+            gui = false;
             image = "latest.jpg";
         } else {
             image = argv[1];
@@ -247,10 +248,11 @@ void blob_callback(int, void*) {
         line(result, goal.side_two,goal.side_three, Scalar(255,0,0),5);
         line(result, goal.side_three,goal.side_four, Scalar(255,0,0),5);
         line(result, goal.side_four,goal.side_one, Scalar(255,0,0),5);
-        cout<<"vertex 1: ("<<goal.side_one.x<<","<<goal.side_one.y<<")"<<endl;
-        cout<<"vertex 2: ("<<goal.side_two.x<<","<<goal.side_two.y<<")"<<endl;
-        cout<<"vertex 3: ("<<goal.side_three.x<<","<<goal.side_three.y<<")"<<endl;
-        cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
+
+        // cout<<"vertex 1: ("<<goal.side_one.x<<","<<goal.side_one.y<<")"<<endl;
+        // cout<<"vertex 2: ("<<goal.side_two.x<<","<<goal.side_two.y<<")"<<endl;
+        // cout<<"vertex 3: ("<<goal.side_three.x<<","<<goal.side_three.y<<")"<<endl;
+        // cout<<"vertex 4: ("<<goal.side_four.x<<","<<goal.side_four.y<<")"<<endl;
     }
 
     if (gui) imshow("window",result);
@@ -265,10 +267,10 @@ pair<float,float> off_angle() {
     float goalAngleX = mountAngleX+degPerPxlX*(goalPixelX-size_x/2);
     float cameraDistance = (goalHeight-cameraHeight)/tan(goalAngleY);
     float shift = sqrt(shiftX*shiftX+shiftY*shiftY);
-    float cameraAngle = M_PI-goalAngleX-atan(shiftY/shiftX);
+    float cameraAngle = M_PI-goalAngleX-atan(shiftX/shiftY);
     float distance = sqrt(cameraDistance*cameraDistance+shift*shift-2*cameraDistance*shift*cos(cameraAngle));
     float offAngle = asin(sin(cameraAngle)*cameraDistance/distance);
-    offAngle = offAngle+atan(shiftX/shiftY)-M_PI/2;
+    offAngle = offAngle+atan(shiftY/shiftX)-M_PI/2;
     distance = distance/milimetersPerInch;
     cout<<"size_x "<<size_x<<endl;
     cout<<"goalPixelX "<<goalPixelX<<endl;
