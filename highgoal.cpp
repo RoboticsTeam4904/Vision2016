@@ -73,7 +73,7 @@ int getdir (string dir, vector<string> &files) {
 
 
 int main(int argc, char** argv) {
-    string image = "latest.jpg";
+    string image = "pic.jpg";
 
     if (argc == 1) {
         detailedGUI = true;
