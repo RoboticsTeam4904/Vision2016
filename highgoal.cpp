@@ -57,23 +57,6 @@ const float millimetersPerInch = 25.4;
 rect_points goal;
 vector<vector<Point> > contours;
 
-int getdir(string dir, vector<string> &files) {
-	DIR *dp;
-	struct dirent *dirp;
-	if ((dp = opendir(dir.c_str())) == NULL) {
-		cout << "Error opening directory '" << dir << "'" << endl;
-		return -1;
-	}
-
-	while ((dirp = readdir(dp)) != NULL) {
-		files.push_back(string(dirp->d_name));
-	}
-	closedir(dp);
-	return 0;
-}
-
-
-
 
 int main(int argc, char** argv) {
 	string image = "latest.jpg";
@@ -140,6 +123,20 @@ int main(int argc, char** argv) {
 	return 0;
 }
 
+int getdir(string dir, vector<string> &files) {
+	DIR *dp;
+	struct dirent *dirp;
+	if ((dp = opendir(dir.c_str())) == NULL) {
+		cout << "Error opening directory '" << dir << "'" << endl;
+		return -1;
+	}
+
+	while ((dirp = readdir(dp)) != NULL) {
+		files.push_back(string(dirp->d_name));
+	}
+	closedir(dp);
+	return 0;
+}
 
 void analyzeImage(Mat src) {
 	float offAngle = 0.0;
@@ -167,7 +164,6 @@ void analyzeImage(Mat src) {
 	cout << existingGoal << "::" << offAngle << "::" << distance << endl;
 	if (gui) waitKey(0);
 }
-
 
 void convex_callback(int, void*) {
 	Mat threshold_output, convex;
