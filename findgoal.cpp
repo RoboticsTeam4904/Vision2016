@@ -1,0 +1,83 @@
+int blobsize = 5;
+int max_blobsize = 20;
+
+struct analyze_t{
+	Mat * src;
+	float * offAngle;
+	float * distance;
+	bool debug;
+};
+
+void analyzeImage(int blob_size, void * data) {
+
+	analyze_t analyzeData = *((struct analyze_t *) data);
+
+	Mat src = *analyzeData.src;
+	bool debug = analyzeData.debug;
+	
+	int size_x = src.cols;
+	int size_y = src.rows;
+
+	vector<Point> poly, largest_contour;
+	vector<Vec4i> hierarchy;
+	Mat blobbed;
+	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * blob_size + 1, 2 * blob_size + 1), Point(blob_size, blob_size));
+
+	erode(src, blobbed, element);
+	dilate(blobbed, blobbed, element);
+	if (debug) imshow("blobbed", blobbed);
+	findContours(blobbed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+	Mat result = src.clone();
+	// Mat::zeros(blobbed.size(), CV_8UC3);
+
+	if (contours.size()!=0) {
+		existingGoal = true;
+		double largest_area = 0.0;
+		for (int i = 0; i < contours.size(); i++) {
+			// Find the area of contour
+			double a = contourArea(contours[i], false);
+			if (a > largest_area) {
+				largest_contour = contours[i];
+				largest_area = a;
+			}
+ 		}
+	}
+	approxPolyDP(Mat(largest_contour), poly, 3, true);
+	goal.side_one = poly[0];
+	goal.side_two = poly[1];
+	goal.side_three = poly[2];
+	goal.side_four = poly[3];
+
+	if (gui) {
+		line(result, goal.side_one, goal.side_two, Scalar(255, 0, 0), 5);
+		line(result, goal.side_two, goal.side_three, Scalar(255, 0, 0), 5);
+		line(result, goal.side_three, goal.side_four, Scalar(255, 0, 0), 5);
+		line(result, goal.side_four, goal.side_one, Scalar(255, 0, 0), 5);
+		imshow("window", result);
+	}
+
+	if (existingGoal) {
+		pair<float,float> tempvar = off_angle();
+		*analyzeData.offAngle = tempvar.first;
+		*analyzeData.distance = tempvar.second;
+	}
+	cout << existingGoal << "::" << offAngle << "::" << distance << endl;
+	if (gui) waitKey(0);
+}
+
+pair<float,float> off_angle() {
+	float degPerPxlX = nativeAngleX / size_x;
+	float degPerPxlY = nativeAngleY / size_y;
+	float goalPixelY = size_y - (goal.side_two.y + goal.side_one.y + goal.side_three.y + goal.side_four.y) / 4;
+	float goalAngleY = mountAngleY + degPerPxlY * (goalPixelY - size_y / 2);
+	float goalPixelX = (goal.side_two.x + goal.side_one.x + goal.side_three.x + goal.side_four.x) / 4;
+	float goalAngleX = mountAngleX + degPerPxlX * (goalPixelX - size_x / 2);
+	float cameraDistance = (goalHeight - cameraHeight) / tan(goalAngleY);
+	float shift = sqrt(shiftX * shiftX + shiftY * shiftY);
+	float cameraAngle = M_PI - goalAngleX - atan(shiftX / shiftY);
+	float distance = sqrt(cameraDistance * cameraDistance + shift * shift - 2 * cameraDistance * shift * cos(cameraAngle));
+	float offAngle = asin(sin(cameraAngle) * cameraDistance / distance);
+	offAngle += atan(shiftY / shiftX) - M_PI / 2;
+	distance /= millimetersPerInch;
+	return make_pair(offAngle, distance);
+}
