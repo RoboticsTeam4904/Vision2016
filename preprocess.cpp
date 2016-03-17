@@ -3,14 +3,14 @@
 using namespace cv;
 using namespace std;
 
-struct thresholdData_t{
+struct threshold_t{
 	Mat * src;
 	bool debug;
 };
 
 void thresholdImage(int threshold, void * data){
 
-	thresholdData_t thresholdData = *((struct thresholdData_t *) data);
+	threshold_t thresholdData = *((struct threshold_t *) data);
 	Mat src = *thresholdData.src;
 	bool debug = thresholdData.debug;
 	
@@ -56,10 +56,10 @@ void thresholdImage(int threshold, void * data){
 	}
 	// subtract(convex, threshold_output, subtracted);
 
+	thresholdData.src = &threshold_output;
+
 	if (debug) {
 		imshow("convex", convex);
 		imshow("subtracted", subtracted);
 	}
-
-	thresholdData.src = &threshold_output;
 }

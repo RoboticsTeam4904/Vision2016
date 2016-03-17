@@ -7,6 +7,9 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "preprocess.h"
+#include "findgoal.h"
+
 using namespace cv;
 using namespace std;
 
@@ -26,24 +29,6 @@ bool existingGoal = false;
 
 void analyzeImage(Mat src);
 
-pair<float,float> off_angle();
-
-// CONSTANTS
-// Distances are in milimeters, angles are in degrees
-const float mountAngleX = 0.0;
-const float mountAngleY = 45.0 * M_PI / 180;
-const int nativeResX = 2592;
-const int nativeResY = 1944;
-const float nativeAngleX = 53.5 * M_PI / 180;
-const float nativeAngleY = 41.41 * M_PI / 180;
-const float shiftX = 336.55; // 13.25 inches
-const float shiftY = 57.15; // 2.5 inches
-const float goalHeight = 2292.35; // 7.5 feet
-const float cameraHeight = 296.0; // 296 milimeters
-const float millimetersPerInch = 25.4;
-
-rect_points goal;
-vector<vector<Point> > contours;
 
 int getdir(string dir, vector<string> &files) {
 	DIR *dp;
@@ -77,31 +62,39 @@ int main(int argc, char** argv) {
 			int blob_size = 5;
 			int max_blob = 20;
 
-			thresholdData_t thresholdData;
-			thresholdData.src = &input;
-			thresholdData.debug = debug;
+			threshold_t thresholdData;
+			threshold.src = &input;
+			threshold.debug = debug;
 
 			if(debug){
 				namedWindow("Vision2016", CV_WINDOW_AUTOSIZE);
 				imshow("preprocessed", preprocessed);
 				createTrackbar("Threshold:", "Vision2016", &threshold, max_threshold, thresholdImage, &thresholdData);
-				// createTrackbar("Blobsize:", "Vision2016",
 			}
 			else{
-				thresholdImage(threshold, thresholdData);
+				thresholdImage(threshold, &thresholdData);
+				findGoal(blob_size, &analyzeData);
 			}
 
 			Mat preprocessed = *thresholdData.src;
-
-
 			float offAngle;
 			float distance;
-			boolean existingGoal;
+			boolean foundGoal
 
-			findGoal(preprocessed, &existingGoal, &offAngle, &distance);
+			analyze_t analyzeData;
+			analyzeData.src = &preprocessed;
+			analyzeData.debug = debug;
+			analyzeData.offAngle = &offAngle;
+			analyzeData.distance = &distance;
+			analyzeData.foundGoal = &foundGoal;
 
+			if(debug){
+				createTrackbar("Blobsize:", "Vision2016", &blob_size, max_blob, findGoal, &analyzeData);
+
+			}
+			
 			stringstream data;
-			data << existingGoal << ":" << offAngle << ":" << distance << ":";
+			data << foundGoal << ":" << offAngle << ":" << distance << ":";
 		
 			client.c_write(data.str());
 
@@ -109,67 +102,7 @@ int main(int argc, char** argv) {
 		}
 
 	}
-		
 
-	if (argc == 1) {
-		detailedGUI = true;
-	} else if (argc == 2) {
-		if (strcmp(argv[1], "test") == 0) {
-			gui = false;
-			test = true;
-
-			cout << "*********************************" << endl;
-			cout << "Testing mode" << endl;
-			cout << "*********************************" << endl << endl;
-		} else if (strcmp(argv[1], "latest") == 0) {
-			latest = true;
-			gui = false;
-			image = "latest.jpg";
-		} else {
-			image = argv[1];
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "folder") == 0) {
-			vector<string> files = vector<string>();
-			string dir = argv[2];
-			if (dir.substr(dir.size() - 1, 1) != "/") {
-				dir += "/";
-			}
-
-			int status = getdir(dir, files);
-
-			if (status >= 0) {
-				cout << "Reading directory '" << dir << "'" << endl;
-			} else {
-				return status;
-			}
-
-			for (unsigned int i = 0; i < files.size(); i++) {
-				if (files[i].length() < 4 || files[i].substr(files[i].length() - 4, 4) != ".jpg") continue;
-				string path = dir + files[i];
-
-				src = imread(path, CV_LOAD_IMAGE_UNCHANGED);
-				if (src.empty()) {
-					cout << "Error: Image '" << path << "' cannot be loaded" << endl;
-					return -1;
-				}
-				cout << "Loaded image '" << files[i] << "'" << endl;
-				analyzeImage(src);
-
-				waitKey(0);
-				done = true;
-			}
-		}
-	}
-
-	if (!done) {
-		src = imread(image, CV_LOAD_IMAGE_UNCHANGED);
-		if (src.empty()) {
-			cout << "Error: Image '" << image << "' cannot be loaded" << endl;
-			return -1;
-		}
-		analyzeImage(src);
-	}
 	return 0;
 }
 

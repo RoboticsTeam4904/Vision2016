@@ -1,14 +1,7 @@
-int blobsize = 5;
-int max_blobsize = 20;
+#include "findgoal.h"
+#include "config.h"
 
-struct analyze_t{
-	Mat * src;
-	float * offAngle;
-	float * distance;
-	bool debug;
-};
-
-void analyzeImage(int blob_size, void * data) {
+void findGoal(int blob_size, void * data) {
 
 	analyze_t analyzeData = *((struct analyze_t *) data);
 
@@ -22,6 +15,9 @@ void analyzeImage(int blob_size, void * data) {
 	vector<Vec4i> hierarchy;
 	Mat blobbed;
 	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * blob_size + 1, 2 * blob_size + 1), Point(blob_size, blob_size));
+
+	rect_points goal;
+	vector<vector<Point> > contours;
 
 	erode(src, blobbed, element);
 	dilate(blobbed, blobbed, element);
@@ -48,24 +44,24 @@ void analyzeImage(int blob_size, void * data) {
 	goal.side_three = poly[2];
 	goal.side_four = poly[3];
 
-	if (gui) {
+	if (debug) {
 		line(result, goal.side_one, goal.side_two, Scalar(255, 0, 0), 5);
 		line(result, goal.side_two, goal.side_three, Scalar(255, 0, 0), 5);
 		line(result, goal.side_three, goal.side_four, Scalar(255, 0, 0), 5);
 		line(result, goal.side_four, goal.side_one, Scalar(255, 0, 0), 5);
-		imshow("window", result);
+		imshow("Vision2016", result);
 	}
 
+	*aanalyzeData.foundGoal = existingGoal;
+	
 	if (existingGoal) {
-		pair<float,float> tempvar = off_angle();
+		pair<float,float> tempvar = off_angle(size_x, size_y, goal);
 		*analyzeData.offAngle = tempvar.first;
 		*analyzeData.distance = tempvar.second;
 	}
-	cout << existingGoal << "::" << offAngle << "::" << distance << endl;
-	if (gui) waitKey(0);
 }
 
-pair<float,float> off_angle() {
+pair<float,float> off_angle(int size_x, int size_y, rect_points goal) {
 	float degPerPxlX = nativeAngleX / size_x;
 	float degPerPxlY = nativeAngleY / size_y;
 	float goalPixelY = size_y - (goal.side_two.y + goal.side_one.y + goal.side_three.y + goal.side_four.y) / 4;
