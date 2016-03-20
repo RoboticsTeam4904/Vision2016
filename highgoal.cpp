@@ -1,3 +1,4 @@
+#include <thread>
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
@@ -7,102 +8,87 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
+#include "ctserver.h"
+
+#include "config.h"
 #include "preprocess.h"
 #include "findgoal.h"
 
 using namespace cv;
 using namespace std;
 
-struct rect_points {
-	Point side_one;
-	Point side_two;
-	Point side_three;
-	Point side_four;
-};
+Mat loadImage(){
+		return imread("latest.jpg", CV_LOAD_IMAGE_COLOR);
+}
 
-bool gui = false; // Turn on for debugging
-bool detailedGUI = false;
-bool test = false;
-bool latest = false;
-bool done = false;
-bool existingGoal = false;
+void serveResults(int port, float * offAngle, float * distance, bool * foundGoal){
 
-void analyzeImage(Mat src);
+		ctserver server;
+		server.create(port);
 
+		while(true){
+				server.getconn();
 
-int getdir(string dir, vector<string> &files) {
-	DIR *dp;
-	struct dirent *dirp;
-	if ((dp = opendir(dir.c_str())) == NULL) {
-		cout << "Error opening directory '" << dir << "'" << endl;
-		return -1;
-	}
+				stringstream data;
 
- 	while ((dirp = readdir(dp)) != NULL) {
-		files.push_back(string(dirp->d_name));
-	}
-	closedir(dp);
-	return 0;
+				data << *foundGoal << ":" << *offAngle << ":" << *distance;
+				server.c_write(data.str());
+
+				server.c_close();
+		}
+}
+
+void debugUpdateThreshold(int thresh, void * thresholdPtr){
+		*((int *) thresholdPtr) = thresh;
+}
+
+void debugUpdateBlobsize(int blobSize, void * blobSizePtr){
+		*((int *) blobSizePtr) = blobSize;
+}
+
+void processImages(float * offAngle, float * distance, bool * foundGoal, bool debug){
+		int thresh;
+		int blobSize;
+
+		if(debug){
+				namedWindow("Vision2016", CV_WINDOW_AUTOSIZE);
+				createTrackbar("Threshold:", "Vision2016", &thresh, maxThresh, NULL, NULL);	
+				createTrackbar("Blobsize:", "Vision2016", &blobSize, maxBlobSize, NULL, NULL);
+		}
+		
+		while(true){
+
+				Mat inputImage = loadImage();
+
+				Mat thresholdedImage = thresholdImage(inputImage, thresh, debug);
+
+				if(debug){
+						imshow("preprocessed", thresholdedImage);
+				}
+
+				goalPosition goal = findGoal(thresholdedImage, blobSize, debug);
+
+				if(goal.foundGoal){
+						*offAngle = goal.offAngle;
+						*distance = goal.distance;
+				}
+				*foundGoal = goal.foundGoal;
+		}
 }
 
 int main(int argc, char** argv) {
-	string image = "latest.jpg";
-	boolean debug = false;
+		bool debug = false;
+		int port = 9999;
+
+		float offAngle;
+		float distance;
+		bool foundGoal;
+
+		thread server = thread(serveResults, port, &offAngle, &distance, &foundGoal);
+		thread processor = thread(processImages, &offAngle, &distance, &foundGoal, debug);
+
+		server.join();
+		processor.join();
 	
-	while(true){
-		ctclient client;
-
-		if(client.create("10.49.04.2", 9999) == 0){
-
-			Mat input = loadImage();
-
-			int threshold = 210;
-			int max_threshold = 255;
-
-			int blob_size = 5;
-			int max_blob = 20;
-
-			threshold_t thresholdData;
-			threshold.src = &input;
-			threshold.debug = debug;
-
-			if(debug){
-				namedWindow("Vision2016", CV_WINDOW_AUTOSIZE);
-				imshow("preprocessed", preprocessed);
-				createTrackbar("Threshold:", "Vision2016", &threshold, max_threshold, thresholdImage, &thresholdData);
-			}
-			else{
-				thresholdImage(threshold, &thresholdData);
-				findGoal(blob_size, &analyzeData);
-			}
-
-			Mat preprocessed = *thresholdData.src;
-			float offAngle;
-			float distance;
-			boolean foundGoal
-
-			analyze_t analyzeData;
-			analyzeData.src = &preprocessed;
-			analyzeData.debug = debug;
-			analyzeData.offAngle = &offAngle;
-			analyzeData.distance = &distance;
-			analyzeData.foundGoal = &foundGoal;
-
-			if(debug){
-				createTrackbar("Blobsize:", "Vision2016", &blob_size, max_blob, findGoal, &analyzeData);
-
-			}
-			
-			stringstream data;
-			data << foundGoal << ":" << offAngle << ":" << distance << ":";
-		
-			client.c_write(data.str());
-
-			client.c_close();
-		}
-
-	}
-
-	return 0;
+		return 0;
 }
-
