@@ -1,4 +1,7 @@
 // CONSTANTS
+const int maxThresh = 255;
+const int maxBlobSize = 20;
+
 // Distances are in milimeters, angles are in degrees
 const float mountAngleX = 0.0;
 const float mountAngleY = 45.0 * M_PI / 180;
