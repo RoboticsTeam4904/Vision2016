@@ -24,9 +24,9 @@ Mat thresholdImage(Mat src, int thresh, bool debug){
 				convexHull(Mat(contours[i]), hull[i], false);
 		}
 
-		convex = Mat::zeros( threshold_output.size(), CV_8UC1 );
+		convex = Mat::zeros(threshold_output.size(), CV_8UC1);
 		for (int i = 0; i<contours.size(); ++i) {
-				drawContours(convex, hull, i, Scalar(255,255,255), CV_FILLED, 8, vector<Vec4i>(), 0, Point() );
+				drawContours(convex, hull, i, Scalar(255,255,255), CV_FILLED, 8, vector<Vec4i>(), 0, Point());
 		}
 
 		subtracted = Mat::zeros(convex.size(), CV_8UC1);
