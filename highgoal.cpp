@@ -3,6 +3,7 @@
 #include "opencv2/core/core.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <cstdlib>
 #include <dirent.h>
 // For availability of M_PI
 #define _USE_MATH_DEFINES
@@ -18,7 +19,7 @@ using namespace cv;
 using namespace std;
 
 Mat loadImage(){
-		return imread("latest.jpg", CV_LOAD_IMAGE_COLOR);
+	return imread("latest.jpg", CV_LOAD_IMAGE_COLOR);
 }
 
 void serveResults(int port, float * offAngle, float * distance, bool * foundGoal){
