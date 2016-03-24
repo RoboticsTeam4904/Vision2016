@@ -5,9 +5,9 @@
 #include <iostream>
 #include <cstdlib>
 #include <dirent.h>
+#include <math.h>
 // For availability of M_PI
 #define _USE_MATH_DEFINES
-#include <math.h>
 
 #include "ctserver.h"
 
@@ -24,72 +24,73 @@ Mat loadImage(){
 
 void serveResults(int port, float * offAngle, float * distance, bool * foundGoal){
 
-		ctserver server;
-		server.create(port);
+	ctserver server;
+	server.create(port);
 
-		while(true){
-				server.getconn();
+	while(true){
+		server.getconn();
 
-				stringstream data;
+		stringstream data;
 
-				data << *foundGoal << ":" << *offAngle << ":" << *distance;
-				server.c_write(data.str());
+		data << *foundGoal << ":" << *offAngle << ":" << *distance;
+		server.c_write(data.str());
 
-				server.c_close();
-		}
+		server.c_close();
+	}
 }
 
 void debugUpdateThreshold(int thresh, void * thresholdPtr){
-		*((int *) thresholdPtr) = thresh;
+	*((int *) thresholdPtr) = thresh;
 }
 
 void debugUpdateBlobsize(int blobSize, void * blobSizePtr){
-		*((int *) blobSizePtr) = blobSize;
+	*((int *) blobSizePtr) = blobSize;
 }
 
 void processImages(float * offAngle, float * distance, bool * foundGoal, bool debug){
-		int thresh;
-		int blobSize;
+	int thresh;
+	int blobSize;
+
+	if(debug){
+		namedWindow("Vision2016", CV_WINDOW_AUTOSIZE);
+		createTrackbar("Threshold:", "Vision2016", &thresh, maxThresh, NULL, NULL);	
+		createTrackbar("Blobsize:", "Vision2016", &blobSize, maxBlobSize, NULL, NULL);
+	}
+		
+	while(true){
+
+		Mat inputImage = loadImage();
+
+		Mat thresholdedImage = thresholdImage(inputImage, thresh, debug);
 
 		if(debug){
-				namedWindow("Vision2016", CV_WINDOW_AUTOSIZE);
-				createTrackbar("Threshold:", "Vision2016", &thresh, maxThresh, NULL, NULL);	
-				createTrackbar("Blobsize:", "Vision2016", &blobSize, maxBlobSize, NULL, NULL);
+			imshow("preprocessed", thresholdedImage);
 		}
-		
-		while(true){
 
-				Mat inputImage = loadImage();
+		goalPosition goal = findGoal(thresholdedImage, blobSize, debug);
 
-				Mat thresholdedImage = thresholdImage(inputImage, thresh, debug);
-
-				if(debug){
-						imshow("preprocessed", thresholdedImage);
-				}
-
-				goalPosition goal = findGoal(thresholdedImage, blobSize, debug);
-
-				if(goal.foundGoal){
-						*offAngle = goal.offAngle;
-						*distance = goal.distance;
-				}
-				*foundGoal = goal.foundGoal;
+		if(goal.foundGoal){
+			*offAngle = goal.offAngle;
+			*distance = goal.distance;
 		}
+		*foundGoal = goal.foundGoal;
+	}
 }
 
 int main(int argc, char** argv) {
-		bool debug = false;
-		int port = 9999;
+	bool debug = false;
+	int port = 9999;
 
-		float offAngle;
-		float distance;
-		bool foundGoal;
+	float offAngle;
+	float distance;
+	bool foundGoal;
 
-		thread server = thread(serveResults, port, &offAngle, &distance, &foundGoal);
-		thread processor = thread(processImages, &offAngle, &distance, &foundGoal, debug);
+	thread server = thread(serveResults, port, &offAngle, &distance, &foundGoal);
+	thread processor = thread(processImages, &offAngle, &distance, &foundGoal, debug);
 
-		server.join();
-		processor.join();
+	server.join();
+	processor.join();
 	
-		return 0;
+	return 0;
+
 }
