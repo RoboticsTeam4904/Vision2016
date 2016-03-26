@@ -75,7 +75,8 @@ int main(int argc, char** argv) {
 	string image = "latest.jpg";
 	// Different args determine different modes, so we can debug or run with ease
 	// Modes are (in order): GUI, testing, using latest.jpg (on RPi), or other directory (uses getDir)
-	if (argc == 1) {
+    //cv::setNumThreads(4);
+    if (argc == 1) {
 		detailedGUI = true;
 	} else if (argc == 2) {
 		if (strcmp(argv[1], "test") == 0) {
