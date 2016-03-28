@@ -34,7 +34,7 @@ int max_thresh = 255;
 int blob_size = 5;
 int max_blob = 20; // Used only in gui
 
-bool gui = false; // Turn on for debugging
+bool gui = true; // Turn on for debugging
 bool detailedGUI = false;
 bool test = false;
 bool latest = false;
@@ -72,68 +72,24 @@ int getdir(string dir, vector<string> &files) {
 }
 
 int main(int argc, char** argv) {
-	string image = "latest.jpg";
-	// Different args determine different modes, so we can debug or run with ease
-	// Modes are (in order): GUI, testing, using latest.jpg (on RPi), or other directory (uses getDir)
-	if (argc == 1) {
-		detailedGUI = true;
-	} else if (argc == 2) {
-		if (strcmp(argv[1], "test") == 0) {
-			gui = false;
-			test = true;
-			cout << "*********************************" << endl;
-			cout << "Testing mode" << endl;
-			cout << "*********************************" << endl << endl;
-		} else if (strcmp(argv[1], "latest") == 0) {
-			latest = true;
-			gui = false;
-			image = "latest.jpg";
-		} else {
-			image = argv[1];
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "folder") == 0) {
-			vector<string> files = vector<string>();
-			string dir = argv[2];
-			if (dir.substr(dir.size() - 1, 1) != "/") {
-				dir += "/";
-			}
+    VideoCapture cap;
+    if(!cap.open(0))
+        return 0;
+    for(;;){
+        Mat frame;
+        cap >> frame;
+        if( frame.empty() ) break;
+        //imshow("img", frame);
 
-			int status = getdir(dir, files);
+        Mat dst;
+        resize(frame, dst, Size(), 0.5, 0.5, INTER_NEAREST);
+        //imshow("small",dst);
+        //Mat fimg = dst.clone();
 
-			if (status >= 0) {
-				cout << "Reading directory '" << dir << "'" << endl;
-			} else {
-				return status;
-			}
+        analyzeImage(dst);
+        if( waitKey(1) == 27 ) break;
+    }
 
-			for (unsigned int i = 0; i < files.size(); i++) {
-				if (files[i].length() < 4 || files[i].substr(files[i].length() - 4, 4) != ".jpg") continue;
-				string path = dir + files[i];
-
-				src = imread(path, CV_LOAD_IMAGE_UNCHANGED);
-				if (src.empty()) {
-					cout << "Error: Image '" << path << "' cannot be loaded" << endl;
-					return -1;
-				}
-				cout << "Loaded image '" << files[i] << "'" << endl;
-				analyzeImage(src);
-
-				waitKey(0);
-				done = true;
-			}
-		}
-	}
-
-	// If no mode is specified, run the defualt image
-	if (!done) {
-		src = imread(image, CV_LOAD_IMAGE_UNCHANGED);
-		if (src.empty()) {
-			cout << "Error: Image '" << image << "' cannot be loaded" << endl;
-			return -1;
-		}
-		analyzeImage(src);
-	}
 	return 0;
 }
 
@@ -143,20 +99,117 @@ void analyzeImage(Mat src) {
 	float distance = 0.0;
 	size_x = src.cols;
 	size_y = src.rows;
+    cout<< size_x << "," << size_y <<endl;
 
 	// Convert to 1 channel (gray) for use by other operators
 	cvtColor(src, src_gray, CV_BGR2GRAY);
 	// Blur image as to round any small errors
 	blur(src_gray, src_gray, Size(3, 3));
-
+/*
 	if (gui) {
 		namedWindow("window", CV_WINDOW_AUTOSIZE);
 		if (detailedGUI) imshow("src_gray", src_gray);
 		createTrackbar(" Threshold:", "window", &thresh, max_thresh, convex_callback);
 		createTrackbar(" BlobSize:", "window", &blob_size, max_blob, blob_callback);
-	}
+	}*/
 
-	convex_callback(0, 0);
+	
+    Mat threshold_output, convex;
+    vector<Vec4i> hierarchy;
+
+    // Convert to only black and white pixels using threshold for use by findcontours
+    threshold(src_gray, threshold_output, thresh, max_thresh, THRESH_BINARY);
+    if (gui && detailedGUI) imshow("threshold", threshold_output);
+    // Find shapes for use by other operators
+    findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+
+    // Blob Filter for pre conxev hull?
+
+    // Create convex hulls of contours for detecting the high goal's U shape
+    vector<vector<Point> > hull(contours.size());
+    for(int i = 0; i < contours.size(); ++i) {
+        convexHull(Mat(contours[i]), hull[i], false);
+    }
+
+    convex = Mat::zeros( threshold_output.size(), CV_8UC1 );
+    for (int i = 0; i<contours.size(); ++i) {
+        drawContours(convex, hull, i, Scalar(255,255,255), CV_FILLED, 8, vector<Vec4i>(), 0, Point() );
+    }
+
+    // Subtract the original contours from convex hulls, remaining with the inner part of the U
+    subtracted = Mat::zeros(convex.size(), CV_8UC1);
+    if (convex.isContinuous() && threshold_output.isContinuous()) {
+        uchar *p1, *p2, *p3;
+        p1 = convex.ptr<uchar>(0);
+        p2 = threshold_output.ptr<uchar>(0);
+        p3 = subtracted.ptr<uchar>(0);
+        for (int i = 0; i < convex.rows * convex.cols; ++i) {
+            if (*p2 != 0){
+                *p3 = 0;
+            } else if (*p1 != 0){
+                *p3 = 255;
+            }
+            p1++;
+            p2++;
+            p3++;
+        }
+    }
+    // subtract(convex, threshold_output, subtracted);
+
+    if (gui && detailedGUI) {
+        imshow("convex", convex);
+        imshow("subtracted", subtracted);
+    }
+    // Detect highgoal from what's left and create a goal object
+    
+    vector<Point> poly, largest_contour;
+    vector<Vec4i> hierarchy2;
+    Mat blobbed;
+    Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * blob_size + 1, 2 * blob_size + 1), Point(blob_size, blob_size));
+
+    // Grow and shrink shape to get better edges
+    erode(subtracted, blobbed, element);
+    dilate(blobbed, blobbed, element);
+    if (gui && detailedGUI) imshow("blobbed", blobbed);
+    findContours(blobbed, contours, hierarchy2, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
+    Mat result = src.clone();
+    // Mat::zeros(blobbed.size(), CV_8UC3);
+
+    // Filter for largest
+    if (contours.size()!=0) {
+        foundGoal = true;
+        double largest_area = 0.0;
+        for (int i = 0; i < contours.size(); i++) {
+            // Find the area of contour
+            double a = contourArea(contours[i], false);
+            if (a > largest_area) {
+                largest_contour = contours[i];
+                largest_area = a;
+            }
+        }
+
+        cout << "Contours" << endl;
+        
+        //cout << largest_contour <<endl;
+        // Create goal
+        approxPolyDP(Mat(largest_contour), poly, 3, true);
+        goal.side_one = poly[0];
+        goal.side_two = poly[1];
+        goal.side_three = poly[2];
+        goal.side_four = poly[3];
+
+        if (gui) {
+            line(result, goal.side_one, goal.side_two, Scalar(255, 0, 0), 5);
+            line(result, goal.side_two, goal.side_three, Scalar(255, 0, 0), 5);
+            line(result, goal.side_three, goal.side_four, Scalar(255, 0, 0), 5);
+            line(result, goal.side_four, goal.side_one, Scalar(255, 0, 0), 5);
+        }
+    }
+    else {
+        if (gui) cout << "no countours" << endl;
+    }
+    if (gui) imshow("window", result);
+
 
 	// Calculate angle and distance if goal is found
 	if (foundGoal) {
@@ -166,103 +219,11 @@ void analyzeImage(Mat src) {
 	}
 	// Print results for debugging or communication with RIO
 	cout << foundGoal << "::" << offAngle << "::" << distance << endl;
-	if (gui) waitKey(0);
+	//if (gui) waitKey(0);
 }
 
 
-void convex_callback(int, void*) {
-	Mat threshold_output, convex;
-	vector<Vec4i> hierarchy;
 
-	// Convert to only black and white pixels using threshold for use by findcontours
-	threshold(src_gray, threshold_output, thresh, max_thresh, THRESH_BINARY);
-	if (gui && detailedGUI) imshow("threshold", threshold_output);
-	// Find shapes for use by other operators
-	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-
-	// Blob Filter for pre conxev hull?
-
-	// Create convex hulls of contours for detecting the high goal's U shape
-	vector<vector<Point> > hull(contours.size());
-	for(int i = 0; i < contours.size(); ++i) {
-		convexHull(Mat(contours[i]), hull[i], false);
-	}
-
-	convex = Mat::zeros( threshold_output.size(), CV_8UC1 );
-	for (int i = 0; i<contours.size(); ++i) {
-		drawContours(convex, hull, i, Scalar(255,255,255), CV_FILLED, 8, vector<Vec4i>(), 0, Point() );
-	}
-
-	// Subtract the original contours from convex hulls, remaining with the inner part of the U
-	subtracted = Mat::zeros(convex.size(), CV_8UC1);
-	if (convex.isContinuous() && threshold_output.isContinuous()) {
-		uchar *p1, *p2, *p3;
-		p1 = convex.ptr<uchar>(0);
-		p2 = threshold_output.ptr<uchar>(0);
-		p3 = subtracted.ptr<uchar>(0);
-		for (int i = 0; i < convex.rows * convex.cols; ++i) {
-			if (*p2 != 0){
-				*p3 = 0;
-			} else if (*p1 != 0){
-				*p3 = 255;
-			}
-			p1++;
-			p2++;
-			p3++;
-		}
-	}
-	// subtract(convex, threshold_output, subtracted);
-
-	if (gui && detailedGUI) {
-		imshow("convex", convex);
-		imshow("subtracted", subtracted);
-	}
-	// Detect highgoal from what's left and create a goal object
-	blob_callback(0, 0);
-}
-
-void blob_callback(int, void*) {
-	vector<Point> poly, largest_contour;
-	vector<Vec4i> hierarchy;
-	Mat blobbed;
-	Mat element = getStructuringElement(MORPH_ELLIPSE, Size(2 * blob_size + 1, 2 * blob_size + 1), Point(blob_size, blob_size));
-
-	// Grow and shrink shape to get better edges
-	erode(subtracted, blobbed, element);
-	dilate(blobbed, blobbed, element);
-	if (gui && detailedGUI) imshow("blobbed", blobbed);
-	findContours(blobbed, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
-	Mat result = src.clone();
-	// Mat::zeros(blobbed.size(), CV_8UC3);
-
-	// Filter for largest
-	if (contours.size()!=0) {
-		foundGoal = true;
-		double largest_area = 0.0;
-		for (int i = 0; i < contours.size(); i++) {
-			// Find the area of contour
-			double a = contourArea(contours[i], false);
-			if (a > largest_area) {
-				largest_contour = contours[i];
-				largest_area = a;
-			}
-		}
-	}
-	// Create goal
-	approxPolyDP(Mat(largest_contour), poly, 3, true);
-	goal.side_one = poly[0];
-	goal.side_two = poly[1];
-	goal.side_three = poly[2];
-	goal.side_four = poly[3];
-
-	if (gui) {
-		line(result, goal.side_one, goal.side_two, Scalar(255, 0, 0), 5);
-		line(result, goal.side_two, goal.side_three, Scalar(255, 0, 0), 5);
-		line(result, goal.side_three, goal.side_four, Scalar(255, 0, 0), 5);
-		line(result, goal.side_four, goal.side_one, Scalar(255, 0, 0), 5);
-		imshow("window", result);
-	}
-}
 
 // Calculate angle and distance based off of pixel coordinates. Return radians (straight ahead - 0, right - positive, left - negative), distance (on the floor from shooter to middle of U on highgoal)
 pair<float,float> angle_and_dist() {
