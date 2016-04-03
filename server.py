@@ -122,7 +122,7 @@ if __name__ == "__main__":
 
 	while True:
 		processImage(getImage())
-		if cv2.waitKey(1) & 0xFF == ord('q'):
+		if cv2.waitKey(1):
 			break
 	# Create the server, binding to localhost on port 9999
 	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
