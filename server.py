@@ -4,6 +4,7 @@ import numpy as np
 
 pi = False
 gui = False
+webcam = True
 
 if pi:
 	from picamera.array import PiRGBArray
@@ -17,6 +18,8 @@ if pi:
 	camera.framerate = 15
 	rawCapture = PiRGBArray(camera, size=camera.resolution)
 
+if not pi and webcam:
+	cap = cv2.VideoCapture(0)
 # constants
 nativeResolution = (2592, 1944)
 nativeAngle = (math.radians(53.5), math.radians(41.41))
@@ -46,6 +49,8 @@ def getImage():
 
 			# clear the stream in preparation for the next frame
 			rawCapture.truncate(0)
+	elif webcam:
+		ret, image = cap.read()
 	else:
 		image = cv2.imread("latest.jpg")
 
@@ -84,7 +89,6 @@ def processImage(src):
 		cv2.rectangle(src, (x, y), (x+w, y+h), (0, 255, 0), 2)
 	
 	cv2.imshow("img", src)
-	cv2.waitKey(0)
 
 
 
@@ -102,7 +106,10 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 if __name__ == "__main__":
 	HOST, PORT = "0.0.0.0", 9999
 
-	processImage(getImage())
+	while True:
+		processImage(getImage())
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
 	# Create the server, binding to localhost on port 9999
 	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
 
