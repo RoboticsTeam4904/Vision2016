@@ -67,8 +67,7 @@ def angle_and_dist(goal):
 
 def processImage(src):
 	gray = cv2.cvtColor(src, cv2.COLOR_BGR2GRAY)
-	cv2.imshow("img", src)
-	cv2.waitKey(0)
+
 	# Detect faces in the image
 	goals = goalCascade.detectMultiScale(
 		gray,
@@ -82,7 +81,11 @@ def processImage(src):
 
 	# Draw a rectangle around the faces
 	for (x, y, w, h) in goals:
-		cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)
+		cv2.rectangle(src, (x, y), (x+w, y+h), (0, 255, 0), 2)
+	
+	cv2.imshow("img", src)
+	cv2.waitKey(0)
+
 
 
 class MyTCPHandler(SocketServer.BaseRequestHandler):
