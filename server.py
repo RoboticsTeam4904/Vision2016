@@ -3,12 +3,8 @@ import SocketServer, subprocess, time, cv2, math, cv2.cv
 import numpy as np
 
 pi = False
-<<<<<<< HEAD
 gui = True
-=======
-gui = False
-webcam = True
->>>>>>> 776e8b5cfdb7dbddb2ddb34eb204501db5e699bc
+webcam = False
 
 if pi:
 	from picamera.array import PiRGBArray
