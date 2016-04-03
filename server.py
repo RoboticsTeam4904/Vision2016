@@ -1,9 +1,9 @@
 from __future__ import division #Might take time to import
-import SocketServer, subprocess, time, cv2, math
+import SocketServer, subprocess, time, cv2, math, cv2.cv
 import numpy as np
 
 pi = False
-gui = False
+gui = True
 
 if pi:
 	from picamera.array import PiRGBArray
@@ -18,6 +18,7 @@ if pi:
 	rawCapture = PiRGBArray(camera, size=camera.resolution)
 
 # constants
+cameraResolution = (640, 480)
 nativeResolution = (2592, 1944)
 nativeAngle = (math.radians(53.5), math.radians(41.41))
 mountAngle = (0, math.radians(45))
@@ -51,16 +52,16 @@ def getImage():
 
 	return image
 
-def angle_and_dist(goal):
+def angle_and_dist((x, y, w, h)):
 	# [0] = X, [1] = Y, goal[i] = ith corner of highgoal
 	# Uses camera.resolution
-	degPerPxl = (nativeAngle[0] / camera.resolution[0], nativeAngle[1] / camera.resolution[1])
-	goalPixel = ((goal[0].x + goal[1].x + goal[2].x + goal[3].x) / 4, camera.resolution[1] - (goal[0].y + goal[1].y + goal[2].y + goal[3].y) / 4)
-	goalAngle = (mountAngle[0] + degPerPxl[0] * (goalPixel[0] - camera.resolution[0] / 2), mountAngle[1] + degPerPxl[1] * (goalPixel[1] - camera.resolution[1] / 2))
+	degPerPxl = (nativeAngle[0] / cameraResolution[0], nativeAngle[1] / cameraResolution[1])
+	goalPixel = (x + w/2, cameraResolution[1] - y + h/2)
+	goalAngle = (mountAngle[0] + degPerPxl[0] * (goalPixel[0] - cameraResolution[0] / 2), mountAngle[1] + degPerPxl[1] * (goalPixel[1] - cameraResolution[1] / 2))
 	cameraDistance = (goalHeight - cameraHeight) / math.tan(goalAngle[1])
-	shift = math.sqrt(shift[0] * shift[0] + shift[1] * shift[1])
+	shiftTotal = math.sqrt(shift[0] * shift[0] + shift[1] * shift[1])
 	cameraAngle = math.pi - goalAngle[0] - math.atan(shift[0] / shift[1])
-	distance = math.sqrt(cameraDistance * cameraDistance + shift * shift - 2 * cameraDistance * shift * math.cos(cameraAngle))
+	distance = math.sqrt(cameraDistance * cameraDistance + shiftTotal * shiftTotal - 2 * cameraDistance * shiftTotal * math.cos(cameraAngle))
 	offAngle = math.asin(math.sin(cameraAngle) * cameraDistance / distance)
 	offAngle += math.atan(shift[1] / shift[0]) - math.pi / 2
 	return (offAngle, distance)
@@ -80,11 +81,24 @@ def processImage(src):
 	print "Found {0} goals!".format(len(goals))
 
 	# Draw a rectangle around the faces
-	for (x, y, w, h) in goals:
-		cv2.rectangle(src, (x, y), (x+w, y+h), (0, 255, 0), 2)
-	
-	cv2.imshow("img", src)
-	cv2.waitKey(0)
+
+	if len(goals) > 0:
+		largest_area = 0
+		largest = (0, 0, 0, 0)
+		for (x, y, w, h) in goals:
+			if w*h > largest_area:
+				largest_area = w * h
+				largest = (x, y, w, h)
+		# print cameraResolution[1] - largest[1]
+		data = angle_and_dist(largest)
+		print "1::" + str(math.degrees(data[0])) + "::" + str(data[1])
+	else:
+		print "0::0::0"
+
+	if gui:
+		cv2.rectangle(src, (largest[0], largest[1]), (largest[0]+largest[2], largest[1]+largest[3]), (0, 255, 0), 2)
+		cv2.imshow("img", src)
+		cv2.waitKey(0)
 
 
 
