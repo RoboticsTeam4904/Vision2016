@@ -90,19 +90,22 @@ def processImage(src):
 		largest_area = 0
 		largest = (0, 0, 0, 0)
 		for (x, y, w, h) in goals:
+			if gui:
+				cv2.rectangle(src, (x, y), (x+w, y+h), (0, 0, 255), 2)
 			if w*h > largest_area:
 				largest_area = w * h
 				largest = (x, y, w, h)
 		# print cameraResolution[1] - largest[1]
 		data = angle_and_dist(largest)
 		print "1::" + str(math.degrees(data[0])) + "::" + str(data[1])
+		if gui:
+			cv2.rectangle(src, (x, y), (x+w, y+h), (0, 255, 0), 2)
 	else:
 		print "0::0::0"
 
 	if gui:
-		cv2.rectangle(src, (largest[0], largest[1]), (largest[0]+largest[2], largest[1]+largest[3]), (0, 255, 0), 2)
 		cv2.imshow("img", src)
-		cv2.waitKey(0)
+		#cv2.waitKey(0)
 
 
 
@@ -122,7 +125,7 @@ if __name__ == "__main__":
 
 	while True:
 		processImage(getImage())
-		if cv2.waitKey(1):
+		if cv2.waitKey(1) != -1:
 			break
 	# Create the server, binding to localhost on port 9999
 	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
