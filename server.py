@@ -53,7 +53,7 @@ def getImage():
 	elif webcam:
 		ret, image = cap.read()
 	else:
-		image = cv2.imread("latest.jpg")
+		image = cv2.imread("img0176.jpg")
 
 	return image
 
@@ -61,7 +61,7 @@ def angle_and_dist((x, y, w, h)):
 	# [0] = X, [1] = Y, goal[i] = ith corner of highgoal
 	# Uses camera.resolution
 	degPerPxl = (nativeAngle[0] / cameraResolution[0], nativeAngle[1] / cameraResolution[1])
-	goalPixel = (x + w/2, cameraResolution[1] - y + h/2)
+	goalPixel = (x + w/2, y + h/2)
 	goalAngle = (mountAngle[0] + degPerPxl[0] * (goalPixel[0] - cameraResolution[0] / 2), mountAngle[1] + degPerPxl[1] * (goalPixel[1] - cameraResolution[1] / 2))
 	cameraDistance = (goalHeight - cameraHeight) / math.tan(goalAngle[1])
 	shiftTotal = math.sqrt(shift[0] * shift[0] + shift[1] * shift[1])
@@ -90,10 +90,10 @@ def processImage(src):
 		largest_area = 0
 		largest = (0, 0, 0, 0)
 		for (x, y, w, h) in goals:
+			# cv2.rectangle(src, (x, y), (x + w, y + h), (0, 255, 0), 2)
 			if w*h > largest_area:
 				largest_area = w * h
 				largest = (x, y, w, h)
-		# print cameraResolution[1] - largest[1]
 		data = angle_and_dist(largest)
 		print "1::" + str(math.degrees(data[0])) + "::" + str(data[1])
 	else:
