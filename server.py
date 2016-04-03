@@ -3,7 +3,12 @@ import SocketServer, subprocess, time, cv2, math, cv2.cv
 import numpy as np
 
 pi = False
+<<<<<<< HEAD
 gui = True
+=======
+gui = False
+webcam = True
+>>>>>>> 776e8b5cfdb7dbddb2ddb34eb204501db5e699bc
 
 if pi:
 	from picamera.array import PiRGBArray
@@ -17,6 +22,8 @@ if pi:
 	camera.framerate = 15
 	rawCapture = PiRGBArray(camera, size=camera.resolution)
 
+if not pi and webcam:
+	cap = cv2.VideoCapture(0)
 # constants
 cameraResolution = (640, 480)
 nativeResolution = (2592, 1944)
@@ -47,6 +54,8 @@ def getImage():
 
 			# clear the stream in preparation for the next frame
 			rawCapture.truncate(0)
+	elif webcam:
+		ret, image = cap.read()
 	else:
 		image = cv2.imread("latest.jpg")
 
@@ -81,7 +90,6 @@ def processImage(src):
 	print "Found {0} goals!".format(len(goals))
 
 	# Draw a rectangle around the faces
-
 	if len(goals) > 0:
 		largest_area = 0
 		largest = (0, 0, 0, 0)
@@ -116,7 +124,10 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 if __name__ == "__main__":
 	HOST, PORT = "0.0.0.0", 9999
 
-	processImage(getImage())
+	while True:
+		processImage(getImage())
+		if cv2.waitKey(1) & 0xFF == ord('q'):
+			break
 	# Create the server, binding to localhost on port 9999
 	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
 
