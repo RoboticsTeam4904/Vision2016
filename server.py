@@ -1,9 +1,11 @@
 from __future__ import division #Might take time to import
 import SocketServer, subprocess, time, cv2, math, cv2.cv
 import numpy as np
+from flask import Flask
+app = Flask(__name__)
 
 pi = False
-gui = True
+gui = False
 webcam = False
 
 if pi:
@@ -20,6 +22,8 @@ if pi:
 
 if not pi and webcam:
 	cap = cv2.VideoCapture(0)
+	cap.set(3,640)
+	cap.set(4,480)
 # constants
 cameraResolution = (640, 480)
 nativeResolution = (2592, 1944)
@@ -52,8 +56,9 @@ def getImage():
 			rawCapture.truncate(0)
 	elif webcam:
 		ret, image = cap.read()
+		#cv2.imwrite("/Users/erik/"+str(time.time())+".jpg", image)
 	else:
-		image = cv2.imread("img0176.jpg")
+		image = cv2.imread("img000509.jpg")
 
 	return image
 
@@ -96,18 +101,26 @@ def processImage(src):
 				largest_area = w * h
 				largest = (x, y, w, h)
 		data = angle_and_dist(largest)
-		print "1::" + str(math.degrees(data[0])) + "::" + str(data[1])
+		returnstr = "1::" + str(math.degrees(data[0])) + "::" + str(data[1])
 		if gui:
 			cv2.rectangle(src, (x, y), (x+w, y+h), (0, 255, 0), 2)
 	else:
-		print "0::0::0"
+		returnstr = "0::0::0"
 
 	if gui:
 		cv2.imshow("img", src)
 		#cv2.waitKey(0)
+	return returnstr
 
+@app.route('/autonomous')
+def autonomous():
+	return processImage(getImage())
 
+@app.route('/')
+def autonomous2():
+	return processImage(getImage())
 
+"""
 class MyTCPHandler(SocketServer.BaseRequestHandler):
 	# Responds to requests for the view of the goal.
 
@@ -115,20 +128,20 @@ class MyTCPHandler(SocketServer.BaseRequestHandler):
 		# self.request is the TCP socket connected to the client
 		#process = subprocess.Popen(["./highgoal.bin", "latest"], stdout=subprocess.PIPE)
 
-		response = process.stdout.read()
+		response = processImage(getImage())
 		# just send back the same data, but upper-cased
 		self.request.sendall(response)
+"""
 
 if __name__ == "__main__":
 	HOST, PORT = "0.0.0.0", 9999
+	if gui:
+		while True:
+			processImage(getImage())
+			if cv2.waitKey(1) != -1:
+				break
+	else:
+		app.run(host=HOST,port=PORT)
 
-	while True:
-		processImage(getImage())
-		if cv2.waitKey(1) != -1:
-			break
-	# Create the server, binding to localhost on port 9999
-	server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
-
-	# Activate the server this will keep running until you
-	# interrupt the program with Ctrl-C
+	#server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
 	#server.serve_forever()
