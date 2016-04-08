@@ -147,12 +147,12 @@ void analyzeImage(Mat src) {
 	//Convert the captured frame from BGR to HSV
 	Mat src_HSV;
 	cvtColor(src, src_HSV, COLOR_BGR2HSV);
+	cout << src_HSV.channels() << endl;
 
 	// Detect for green color
  	Mat green_thresholded;
-	if(!src_HSV.empty()) {
-		inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
-	}
+	inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
+
 	// Convert to 1 channel (gray) for use by other operators
 	cvtColor(green_thresholded, src_gray, CV_BGR2GRAY);
 	// Blur image as to round any small errors
