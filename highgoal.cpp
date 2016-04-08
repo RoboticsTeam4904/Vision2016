@@ -153,15 +153,17 @@ void analyzeImage(Mat src) {
  	Mat green_thresholded;
 	inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
 	// inRange might return 1 channel, causing problems
-	cout << green_thresholded.channels() << endl;
+	// cout << green_thresholded.channels() << endl;
 	// Convert to 1 channel (gray) for use by other operators
-	cvtColor(green_thresholded, src_gray, CV_BGR2GRAY//Wrong conversion);
+	// cvtColor(green_thresholded, src_gray, CV_BGR2GRAY//Wrong conversion);
 	// Blur image as to round any small errors
-	blur(src_gray, src_gray, Size(3, 3));
+	// blur(src_gray, src_gray, Size(3, 3));
+	Mat threshold_blur;
+	blur(green_thresholded, threshold_blur, Size(3, 3));
 
 	if (gui) {
 		namedWindow("window", CV_WINDOW_AUTOSIZE);
-		if (detailedGUI) imshow("src_gray", src_gray);
+		if (detailedGUI) imshow("threshold_blur", threshold_blur);
 		createTrackbar(" Threshold:", "window", &thresh, max_thresh, convex_callback);
 		createTrackbar(" BlobSize:", "window", &blob_size, max_blob, blob_callback);
 	}
@@ -185,7 +187,7 @@ void convex_callback(int, void*) {
 	vector<Vec4i> hierarchy;
 
 	// Convert to only black and white pixels using threshold for use by findcontours
-	threshold(src_gray, threshold_output, thresh, max_thresh, THRESH_BINARY);
+	threshold(threshold_blur, threshold_output, thresh, max_thresh, THRESH_BINARY);
 	if (gui && detailedGUI) imshow("threshold", threshold_output);
 	// Find shapes for use by other operators
 	findContours(threshold_output, contours, hierarchy, CV_RETR_TREE, CV_CHAIN_APPROX_SIMPLE, Point(0, 0));
