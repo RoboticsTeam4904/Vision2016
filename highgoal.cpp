@@ -152,10 +152,10 @@ void analyzeImage(Mat src) {
 	// Detect for green color
  	Mat green_thresholded;
 	inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
-
+	// inRange might return 1 channel, causing problems
 	cout << green_thresholded.channels() << endl;
 	// Convert to 1 channel (gray) for use by other operators
-	cvtColor(green_thresholded, src_gray, CV_BGR2GRAY);
+	cvtColor(green_thresholded, src_gray, CV_BGR2GRAY//Wrong conversion);
 	// Blur image as to round any small errors
 	blur(src_gray, src_gray, Size(3, 3));
 
