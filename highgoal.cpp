@@ -150,8 +150,9 @@ void analyzeImage(Mat src) {
 
 	// Detect for green color
  	Mat green_thresholded;
-	inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
-
+	if(!src_HSV.empty()) {
+		inRange(src_HSV, Scalar(0, 100, 0), Scalar(50, 255, 50), green_thresholded); //Threshold the image
+	}
 	// Convert to 1 channel (gray) for use by other operators
 	cvtColor(green_thresholded, src_gray, CV_BGR2GRAY);
 	// Blur image as to round any small errors
