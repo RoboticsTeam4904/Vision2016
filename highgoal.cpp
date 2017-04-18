@@ -282,3 +282,4 @@ pair<float,float> angle_and_dist() {
 	distance /= millimetersPerInch;
 	return make_pair(offAngle, distance);
 }
+Smartdashboard.putNumber(float dist);
